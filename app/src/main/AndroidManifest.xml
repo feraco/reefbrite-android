@@ -34,8 +34,8 @@
 
     <application 
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Holo.Light"
-        android:icon="@drawable/nrfuart_hdpi_icon">
+        android:theme="@android:style/Theme.Light.NoTitleBar"
+        android:icon="@drawable/icon">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -48,6 +48,14 @@
             </intent-filter>
         </activity>
         <activity android:name=".DeviceListActivity" android:label="@string/app_name" android:theme="@android:style/Theme.Dialog"/>
+        <activity
+            android:name=".PointActivity"
+            android:label="@string/app_name">
+        </activity>
+        <activity
+            android:name=".ChartActivity"
+            android:label="@string/app_name">
+        </activity>
         <service android:enabled="true" android:name=".UartService" />
     </application>
 
