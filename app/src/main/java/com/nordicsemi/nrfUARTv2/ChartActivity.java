@@ -1,11 +1,15 @@
 package com.nordicsemi.nrfUARTv2;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -21,12 +25,18 @@ import java.util.ArrayList;
 public class ChartActivity extends Activity {
 
     private Button btnBack, btnSimu;
-    LineChart chart;
+    private LineChart chart;
+    private boolean timeIsRunning;
+    private int time;
+    public static Activity chartActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chart_controller);
+        MainActivity.sendEvent();
+        chartActivity = this;
+        MainActivity.activityRunningState=1;
 
         btnBack = (Button) findViewById(R.id.go_back_btn_1);
         btnSimu = (Button) findViewById(R.id.btn_simulation);
@@ -38,6 +48,7 @@ public class ChartActivity extends Activity {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MainActivity.activityRunningState=0;
                 finish();
             }
         });
@@ -45,6 +56,55 @@ public class ChartActivity extends Activity {
         btnSimu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                time = 0;
+                timeIsRunning = true;
+                final AlertDialog alertDialog = new AlertDialog.Builder(ChartActivity.this).create();
+                alertDialog.setCanceledOnTouchOutside(false);
+                alertDialog.setTitle("SIMULATION!");
+                alertDialog.setMessage("0:00");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                timeIsRunning = false;
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
+                TextView messageText = (TextView)alertDialog.findViewById(android.R.id.message);
+                messageText.setGravity(Gravity.CENTER);
+                messageText.setTextSize(40);
+
+                Runnable myRunnable = new Runnable(){
+
+                    public void run(){
+                        while(timeIsRunning){
+                            final int hour = time/60;
+                            final int minu = time%60;
+                            if(hour != 24){
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        if(minu<10){
+                                            alertDialog.setMessage(hour+":0"+minu);
+                                        }else{
+                                            alertDialog.setMessage(hour+":"+minu);
+                                        }
+                                    }
+                                });
+                                time++;
+                                byte[] value = new byte[]{4,(byte)hour, (byte)minu};
+                                MainActivity.mService.writeRXCharacteristic(value);
+                            }
+                            try {
+                                Thread.sleep(40);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                };
+
+                Thread thread = new Thread(myRunnable);
+                thread.start();
             }
         });
     }

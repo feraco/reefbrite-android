@@ -18,11 +18,14 @@ public class PointActivity extends Activity {
     private Button btnBack, btnSave;
     private TimePicker picker;
     private SeekBar blue, white;
+    public static Activity pointActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.point_controller);
+        pointActivity = this;
+        MainActivity.activityRunningState=2;
 
         btnBack = (Button) findViewById(R.id.go_back_btn_2);
         btnSave = (Button) findViewById(R.id.btn_save);
@@ -43,6 +46,7 @@ public class PointActivity extends Activity {
             @Override
             public void onClick(View v) {
                 MainActivity.indexEdit = -1;
+                MainActivity.activityRunningState=0;
                 finish();
             }
         });
@@ -69,6 +73,7 @@ public class PointActivity extends Activity {
                         sortAdpter(MainActivity.pApter);
                         MainActivity.pApter.notifyDataSetChanged();
                         MainActivity.indexEdit = -1;
+                        MainActivity.activityRunningState=0;
                         finish();
                     }else{
                         if(pModel.getHour()==picker.getCurrentHour() && pModel.getMinu()==picker.getCurrentMinute()) {
@@ -76,6 +81,7 @@ public class PointActivity extends Activity {
                             pModel.setWhiteV(white.getProgress());
                             MainActivity.pApter.notifyDataSetChanged();
                             MainActivity.indexEdit = -1;
+                            MainActivity.activityRunningState=0;
                             finish();
                         }else{
                             AlertDialog alertDialog = new AlertDialog.Builder(PointActivity.this).create();
@@ -97,6 +103,7 @@ public class PointActivity extends Activity {
                         MainActivity.indexEdit = -1;
                         sortAdpter(MainActivity.pApter);
                         MainActivity.pApter.notifyDataSetChanged();
+                        MainActivity.activityRunningState=0;
                         finish();
                     }else{
                         AlertDialog alertDialog = new AlertDialog.Builder(PointActivity.this).create();

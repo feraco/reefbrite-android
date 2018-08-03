@@ -26,7 +26,9 @@ package com.nordicsemi.nrfUARTv2;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 
 import android.app.Activity;
@@ -74,9 +76,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private BluetoothDevice mDevice = null;
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
-    private ArrayList<PointModel> listAdapter = new ArrayList<PointModel>();
+    private static ArrayList<PointModel> listAdapter = new ArrayList<PointModel>();
     private Button btnConnectDisconnect, btnSend, btnAdd, btnChart;
     public static PointAdapter pApter;
+    public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,37 +131,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            	int n = 1;
-            	int packageNum = 0;
-            	int arrayIndex = 0;
-            	int totalPackageNum = listAdapter.size()/4;
-            	int lastPackageSize = (listAdapter.size()%4)*4 + 3;
-            	byte[] value = new byte[19];
-            	value[arrayIndex++] = 1;
-            	value[arrayIndex++] = (byte) listAdapter.size();
-                value[arrayIndex++] = (byte) packageNum;
-            	for(PointModel pModel: listAdapter){
-                    if(n==5){
-                        mService.writeRXCharacteristic(value);
-                        if(packageNum==totalPackageNum){
-                            value = new byte[lastPackageSize];
-                        }else{
-                            value = new byte[19];
-                        }
-                        n = 1;
-                        packageNum ++;
-                        arrayIndex = 0;
-                        value[arrayIndex++] = 1;
-                        value[arrayIndex++] = (byte) listAdapter.size();
-                        value[arrayIndex++] = (byte) packageNum;
-                    }
-                    value[arrayIndex++] = (byte) pModel.getHour();
-                    value[arrayIndex++] = (byte) pModel.getMinu();
-                    value[arrayIndex++] = (byte) pModel.getBlueV();
-                    value[arrayIndex++] = (byte) pModel.getWhiteV();
-                    n++;
-                }
-                mService.writeRXCharacteristic(value);
+                sendEvent();
             }
         });
 
@@ -252,6 +225,13 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         pApter.clear();
                         mState = UART_PROFILE_DISCONNECTED;
                         mService.close();
+                        if(activityRunningState==1){
+                            MainActivity.activityRunningState=0;
+                            ChartActivity.chartActivity.finish();
+                        }else if(activityRunningState==2){
+                            MainActivity.activityRunningState=0;
+                            PointActivity.pointActivity.finish();
+                        }
                         //setUiState();
 
                     }
@@ -270,6 +250,53 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 runOnUiThread(new Runnable() {
                     public void run() {
                         if(value[0]==0){
+                            Date date = new Date();   // given date
+                            Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+                            calendar.setTime(date);   // assigns calendar to given date
+                            int currHour = calendar.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+                            int currMinu = calendar.get(Calendar.MINUTE);
+                            byte[] clockArray = new byte[]{0,(byte) currHour,(byte) currMinu};
+                            mService.writeRXCharacteristic(clockArray);
+                            int clockHour = value[1];
+                            int clockMinu = value[2];
+                            int timeDiff = (currHour*60+currMinu) - (clockHour*60+clockMinu);
+
+                            if (timeDiff>10 || timeDiff<-10){
+                                String currTime = currHour+":";
+                                String clockTime = clockHour+":";
+                                if(currMinu<10){
+                                    currTime += ("0"+currMinu);
+                                }else{
+                                    currTime += currMinu;
+                                }
+                                if(currHour<12){
+                                    currTime += "AM";
+                                }else{
+                                    currTime += "PM";
+                                }
+
+                                if(clockMinu<10){
+                                    clockTime += ("0"+clockMinu);
+                                }else{
+                                    clockTime += clockMinu;
+                                }
+                                if(clockHour<12){
+                                    clockTime += "AM";
+                                }else{
+                                    clockTime += "PM";
+                                }
+
+                                android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(MainActivity.this).create();
+                                alertDialog.setTitle("NOTIFICATION!");
+                                alertDialog.setMessage("Clock time "+ clockTime + " already changed to correct time " + currTime);
+                                alertDialog.setButton(android.support.v7.app.AlertDialog.BUTTON_NEUTRAL, "Close",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        });
+                                alertDialog.show();
+                            }
 
                         }else if(value[0]==1){
                             if(value[1]!=0){
@@ -315,6 +342,40 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
         }
     };
+
+    public static void sendEvent(){
+        int n = 1;
+        int packageNum = 0;
+        int arrayIndex = 0;
+        int totalPackageNum = listAdapter.size()/4;
+        int lastPackageSize = (listAdapter.size()%4)*4 + 3;
+        byte[] value = new byte[19];
+        value[arrayIndex++] = 1;
+        value[arrayIndex++] = (byte) listAdapter.size();
+        value[arrayIndex++] = (byte) packageNum;
+        for(PointModel pModel: listAdapter){
+            if(n==5){
+                mService.writeRXCharacteristic(value);
+                if(packageNum==totalPackageNum){
+                    value = new byte[lastPackageSize];
+                }else{
+                    value = new byte[19];
+                }
+                n = 1;
+                packageNum ++;
+                arrayIndex = 0;
+                value[arrayIndex++] = 1;
+                value[arrayIndex++] = (byte) listAdapter.size();
+                value[arrayIndex++] = (byte) packageNum;
+            }
+            value[arrayIndex++] = (byte) pModel.getHour();
+            value[arrayIndex++] = (byte) pModel.getMinu();
+            value[arrayIndex++] = (byte) pModel.getBlueV();
+            value[arrayIndex++] = (byte) pModel.getWhiteV();
+            n++;
+        }
+        mService.writeRXCharacteristic(value);
+    }
 
     private void service_init() {
         Intent bindIntent = new Intent(this, UartService.class);
