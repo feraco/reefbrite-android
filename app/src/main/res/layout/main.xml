@@ -24,8 +24,8 @@
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:text="@string/timeChart"
             android:enabled="false"
-            android:text="Show Time Chart"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -36,8 +36,8 @@
             android:layout_width="50dp"
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
+            android:text="@string/add"
             android:enabled="false"
-            android:text="+"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -46,23 +46,24 @@
     <LinearLayout
         android:id="@+id/linearLayout3"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
+        android:layout_height="0dp"
         android:layout_weight="0.31"
         android:orientation="vertical">
 
         <RelativeLayout
             android:id="@+id/RelativeLayout1"
             android:layout_width="match_parent"
-            android:layout_height="292dp"
+            android:layout_height="0dp"
             android:layout_weight="4.11"
             android:orientation="vertical">
 
             <ListView
-                android:id="@+id/listMessage"
+                android:id="@+id/pointMessage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"></ListView>
+                android:layout_alignParentTop="true"
+                android:background="@color/table_color"></ListView>
 
         </RelativeLayout>
     </LinearLayout>
@@ -80,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="0.2"
-            android:text="Connect"
+            android:text="@string/connect"
             android:textColor="@color/btn_color_connected"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -101,7 +102,7 @@
             android:layout_height="match_parent"
             android:layout_weight="0.1"
             android:enabled="false"
-            android:text="Send"
+            android:text="@string/send"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />

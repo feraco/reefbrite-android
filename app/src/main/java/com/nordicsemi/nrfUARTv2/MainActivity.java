@@ -24,18 +24,15 @@
 package com.nordicsemi.nrfUARTv2;
 
 
-import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
-
-import com.nordicsemi.nrfUARTv2.UartService;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -46,21 +43,15 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -74,17 +65,18 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
     private static final int STATE_OFF = 10;
-    private static int connect_state = 0; // 0 is disconnect 1 is connect
+    public static int indexEdit = -1;
 
     TextView mRemoteRssiVal;
     RadioGroup mRg;
-    private static int mState = UART_PROFILE_DISCONNECTED;
-    private static UartService mService = null;
-    private static BluetoothDevice mDevice = null;
+    private int mState = UART_PROFILE_DISCONNECTED;
+    public static UartService mService = null;
+    private BluetoothDevice mDevice = null;
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
-    private ArrayAdapter<String> listAdapter;
+    private ArrayList<PointModel> listAdapter = new ArrayList<PointModel>();
     private Button btnConnectDisconnect, btnSend, btnAdd, btnChart;
+    public static PointAdapter pApter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,26 +88,16 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             finish();
             return;
         }
-        messageListView = (ListView) findViewById(R.id.listMessage);
-        listAdapter = new ArrayAdapter<String>(this, R.layout.message_detail);
-        messageListView.setAdapter(listAdapter);
+        messageListView = (ListView) findViewById(R.id.pointMessage);
+
+        pApter= new PointAdapter(listAdapter,getApplicationContext());
+        messageListView.setAdapter(pApter);
         messageListView.setDivider(null);
         btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
         btnSend = (Button) findViewById(R.id.sendButton);
         btnAdd = (Button) findViewById(R.id.addBut);
         btnChart = (Button) findViewById(R.id.timeChartBut);
         service_init();
-
-        if(connect_state == 1){// 1 is connected
-            btnConnectDisconnect.setText("Disconnect");
-            btnSend.setEnabled(true);
-            btnAdd.setEnabled(true);
-            btnChart.setEnabled(true);
-            btnSend.setTextColor(Color.parseColor("#007AFF"));
-            btnAdd.setTextColor(Color.parseColor("#007AFF"));
-            btnChart.setTextColor(Color.parseColor("#007AFF"));
-            ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - ready");
-        }
 
 
         // Handle Disconnect & Connect button
@@ -137,7 +119,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         //Disconnect button pressed
                         if (mDevice != null) {
                             mService.disconnect();
-
                         }
                     }
                 }
@@ -147,23 +128,37 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//            	EditText editText = (EditText) findViewById(R.id.sendText);
-//            	String message = editText.getText().toString();
-//            	byte[] value;
-//				try {
-//					//send data to service
-//					value = message.getBytes("UTF-8");
-//					mService.writeRXCharacteristic(value);
-//					//Update the log with time stamp
-//					String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-//					listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-//               	 	messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-//               	 	edtMessage.setText("");
-//				} catch (UnsupportedEncodingException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-
+            	int n = 1;
+            	int packageNum = 0;
+            	int arrayIndex = 0;
+            	int totalPackageNum = listAdapter.size()/4;
+            	int lastPackageSize = (listAdapter.size()%4)*4 + 3;
+            	byte[] value = new byte[19];
+            	value[arrayIndex++] = 1;
+            	value[arrayIndex++] = (byte) listAdapter.size();
+                value[arrayIndex++] = (byte) packageNum;
+            	for(PointModel pModel: listAdapter){
+                    if(n==5){
+                        mService.writeRXCharacteristic(value);
+                        if(packageNum==totalPackageNum){
+                            value = new byte[lastPackageSize];
+                        }else{
+                            value = new byte[19];
+                        }
+                        n = 1;
+                        packageNum ++;
+                        arrayIndex = 0;
+                        value[arrayIndex++] = 1;
+                        value[arrayIndex++] = (byte) listAdapter.size();
+                        value[arrayIndex++] = (byte) packageNum;
+                    }
+                    value[arrayIndex++] = (byte) pModel.getHour();
+                    value[arrayIndex++] = (byte) pModel.getMinu();
+                    value[arrayIndex++] = (byte) pModel.getBlueV();
+                    value[arrayIndex++] = (byte) pModel.getWhiteV();
+                    n++;
+                }
+                mService.writeRXCharacteristic(value);
             }
         });
 
@@ -234,10 +229,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         btnAdd.setTextColor(Color.parseColor("#007AFF"));
                         btnChart.setTextColor(Color.parseColor("#007AFF"));
                         ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - ready");
-                        listAdapter.add("[" + currentDateTimeString + "] Connected to: " + mDevice.getName());
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        messageListView.smoothScrollToPosition(listAdapter.size() - 1);
                         mState = UART_PROFILE_CONNECTED;
-                        connect_state = 1;
                     }
                 });
             }
@@ -256,10 +249,9 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         btnAdd.setTextColor(Color.parseColor("#B8B8B8"));
                         btnChart.setTextColor(Color.parseColor("#B8B8B8"));
                         ((TextView) findViewById(R.id.deviceName)).setText("");
-                        listAdapter.add("[" + currentDateTimeString + "] Disconnected to: " + mDevice.getName());
+                        pApter.clear();
                         mState = UART_PROFILE_DISCONNECTED;
                         mService.close();
-                        connect_state = 0;
                         //setUiState();
 
                     }
@@ -272,19 +264,44 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 mService.enableTXNotification();
             }
             //*********************//
-            if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
+            if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {// Receive byte array
 
-                final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                final byte[] value = intent.getByteArrayExtra(UartService.EXTRA_DATA);
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        try {
-                            String text = new String(txValue, "UTF-8");
-                            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                            listAdapter.add("[" + currentDateTimeString + "] RX: " + text);
-                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        if(value[0]==0){
 
-                        } catch (Exception e) {
-                            Log.e(TAG, e.toString());
+                        }else if(value[0]==1){
+                            if(value[1]!=0){
+                                int count = 0;
+                                PointModel pModel = null;
+                                for(int i=3; i<value.length; i++){
+                                    if(count%4==0){
+                                        count = 0;
+                                        if(i!=3){
+                                            pApter.add(pModel);
+                                        }
+                                        pModel = new PointModel();
+                                        pModel.setHour(value[i]);
+                                        count++;
+                                    }else{
+                                        switch (count++){
+                                            case 1:pModel.setMinu(value[i]);break;
+                                            case 2:pModel.setBlueV(value[i]);break;
+                                            case 3:pModel.setWhiteV(value[i]);break;
+                                        }
+                                    }
+                                }
+                                pApter.add(pModel);
+                            }else{
+                                pApter.addAll(new PointModel(9,0,0,0),
+                                        new PointModel(10,0,84,0),
+                                        new PointModel(12,0,255,255),
+                                        new PointModel(16,0,255,255),
+                                        new PointModel(20,0,63,0),
+                                        new PointModel(21,0,0,0));
+                            }
+
                         }
                     }
                 });

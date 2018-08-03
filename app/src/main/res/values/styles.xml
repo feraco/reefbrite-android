@@ -42,6 +42,9 @@
     <color name="whitegrey">#FFF2F2F2</color>
     <color name="btn_color_connected">#007AFF</color>
     <color name="btn_color_disconnected">#B8B8B8</color>
+    <color name="table_color">#D2E8F3</color>
+    <color name="white">#FFFFFF</color>
+    <color name="blue">#0000FF</color>
     <!-- AlertDialog text color fix thanks to Shawn Castrianni, see: http://groups.google.com/group/android-developers/browse_thread/thread/f0b34621d3a70c4b -->
     <style name="DialogLight" parent="@android:style/Theme.Dialog">
         

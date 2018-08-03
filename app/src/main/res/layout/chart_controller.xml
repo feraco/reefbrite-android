@@ -29,18 +29,24 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayout9"
         android:layout_width="match_parent"
         android:layout_height="160dp"
         android:layout_weight="0.31"
         android:orientation="vertical">
 
         <RelativeLayout
-            android:id="@+id/RelativeLayout10"
             android:layout_width="match_parent"
             android:layout_height="292dp"
             android:layout_weight="4.11"
             android:orientation="vertical">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/line_chart"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/table_color">
+
+            </com.github.mikephil.charting.charts.LineChart>
 
         </RelativeLayout>
     </LinearLayout>
@@ -56,9 +62,9 @@
         <Button
             android:id="@+id/btn_simulation"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Simulation"
+            android:text="@string/simu"
             android:textColor="@color/btn_color_connected"
             android:textSize="16sp"
             android:textStyle="bold" />
