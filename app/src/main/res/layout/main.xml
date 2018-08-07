@@ -16,16 +16,16 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white">
 
         <Button
             android:id="@+id/timeChartBut"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="@string/timeChart"
+            android:layout_height="wrap_content"
             android:enabled="false"
+            android:text="@string/timeChart"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -33,11 +33,11 @@
         <Button
             android:id="@+id/addBut"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:text="@string/add"
             android:enabled="false"
+            android:text="@string/add"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -71,15 +71,15 @@
     <LinearLayout
         android:id="@+id/connect_layout"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:orientation="horizontal"
-        android:background="@android:color/white">
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_select"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="0.2"
             android:text="@string/connect"
             android:textColor="@color/btn_color_connected"
@@ -98,8 +98,8 @@
         <Button
             android:id="@+id/sendButton"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="77dp"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="0.1"
             android:enabled="false"
             android:text="@string/send"

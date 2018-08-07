@@ -24,13 +24,13 @@
 package com.nordicsemi.nrfUARTv2;
 
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -45,6 +45,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -52,7 +53,6 @@ import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioGroup;
@@ -62,15 +62,11 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements RadioGroup.OnCheckedChangeListener {
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
-    private static final int UART_PROFILE_READY = 10;
     public static final String TAG = "nRFUART";
     private static final int UART_PROFILE_CONNECTED = 20;
     private static final int UART_PROFILE_DISCONNECTED = 21;
-    private static final int STATE_OFF = 10;
     public static int indexEdit = -1;
 
-    TextView mRemoteRssiVal;
-    RadioGroup mRg;
     private int mState = UART_PROFILE_DISCONNECTED;
     public static UartService mService = null;
     private BluetoothDevice mDevice = null;
@@ -85,6 +81,11 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
@@ -121,6 +122,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     } else {
                         //Disconnect button pressed
                         if (mDevice != null) {
+                            byte[] value = new byte[]{5};
+                            mService.writeRXCharacteristic(value);
                             mService.disconnect();
                         }
                     }
@@ -192,7 +195,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_CONNECT_MSG");
                         btnConnectDisconnect.setText("Disconnect");
                         btnSend.setEnabled(true);
@@ -204,6 +206,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - ready");
                         messageListView.smoothScrollToPosition(listAdapter.size() - 1);
                         mState = UART_PROFILE_CONNECTED;
+
                     }
                 });
             }
@@ -212,7 +215,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
                         btnSend.setEnabled(false);
@@ -260,6 +262,8 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             int clockHour = value[1];
                             int clockMinu = value[2];
                             int timeDiff = (currHour*60+currMinu) - (clockHour*60+clockMinu);
+                            Log.d(TAG, "Current Time: " + currHour + ":" + currMinu);
+                            Log.d(TAG, "Clock Time: " + clockHour + ":" + clockMinu);
 
                             if (timeDiff>10 || timeDiff<-10){
                                 String currTime = currHour+":";
@@ -301,25 +305,27 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         }else if(value[0]==1){
                             if(value[1]!=0){
                                 int count = 0;
-                                PointModel pModel = null;
+                                PointModel pModel = new PointModel();
                                 for(int i=3; i<value.length; i++){
-                                    if(count%4==0){
+                                    if(count==3){
+                                        pModel.setWhiteV(value[i]& 0xFF);
+                                        pApter.add(pModel);
                                         count = 0;
-                                        if(i!=3){
-                                            pApter.add(pModel);
-                                        }
                                         pModel = new PointModel();
-                                        pModel.setHour(value[i]);
-                                        count++;
+
                                     }else{
-                                        switch (count++){
-                                            case 1:pModel.setMinu(value[i]);break;
-                                            case 2:pModel.setBlueV(value[i]);break;
-                                            case 3:pModel.setWhiteV(value[i]);break;
+                                        if(count==0){
+                                            pModel.setHour(value[i]);
+                                            count++;
+                                        }else if(count==1){
+                                            pModel.setMinu(value[i]);
+                                            count++;
+                                        }else if(count==2){
+                                            pModel.setBlueV(value[i]& 0xFF);
+                                            count++;
                                         }
                                     }
                                 }
-                                pApter.add(pModel);
                             }else{
                                 pApter.addAll(new PointModel(9,0,0,0),
                                         new PointModel(10,0,84,0),
@@ -338,8 +344,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 showMessage("Device doesn't support UART. Disconnecting");
                 mService.disconnect();
             }
-
-
         }
     };
 
@@ -412,6 +416,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         unbindService(mServiceConnection);
         mService.stopSelf();
         mService = null;
+        pApter.clear();
 
     }
 

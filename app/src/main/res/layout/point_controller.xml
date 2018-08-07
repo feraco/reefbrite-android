@@ -13,14 +13,14 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/go_back_btn_2"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="@string/back"
             android:textColor="@color/btn_color_connected"
@@ -51,7 +51,7 @@
                 android:layout_marginTop="11dp"
                 android:text="Select A Time"
                 android:textAlignment="center"
-                android:textSize="25sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -60,12 +60,12 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
+                android:layout_below="@id/textView3"
                 android:layout_marginTop="40dp"
                 android:layout_weight="4.11"
                 android:background="@color/white"
                 android:gravity="center"
-                android:orientation="horizontal"
-                android:layout_below="@id/textView3">
+                android:orientation="horizontal">
 
                 <TimePicker
                     android:id="@+id/timePicker"
@@ -78,9 +78,9 @@
                 android:id="@+id/blue_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/time_layout"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:layout_below="@id/time_layout"
                 android:paddingTop="10dp">
 
                 <TextView
@@ -92,7 +92,7 @@
                     android:paddingRight="40dp"
                     android:text="Blue:"
                     android:textAlignment="viewStart"
-                    android:textSize="25sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <SeekBar
@@ -107,9 +107,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/blue_layout"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:layout_below="@id/blue_layout"
                 android:paddingTop="10dp">
 
                 <TextView
@@ -119,14 +119,14 @@
                     android:paddingRight="27dp"
                     android:text="White:"
                     android:textAlignment="viewStart"
-                    android:textSize="25sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <SeekBar
                     android:id="@+id/white_bar"
                     android:layout_width="250dp"
                     android:layout_height="wrap_content"
-                    android:max="255"/>
+                    android:max="255" />
             </LinearLayout>
 
         </RelativeLayout>
@@ -134,7 +134,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:gravity="center"
         android:orientation="horizontal">

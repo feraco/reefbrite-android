@@ -109,7 +109,7 @@ public class UartService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-            	Log.w(TAG, "mBluetoothGatt = " + mBluetoothGatt );
+            	Log.d(TAG, "mBluetoothGatt = " + mBluetoothGatt );
             	
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
@@ -123,6 +123,7 @@ public class UartService extends Service {
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                Log.d(TAG,"onCharacteristicRead:"+characteristic.getValue().length);
             }
         }
 
@@ -130,6 +131,31 @@ public class UartService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            Log.d(TAG,"onCharacteristicChanged:"+characteristic.getValue().length);
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                Log.d(TAG,"success on descriptor write");
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte[] value = new byte[]{1};
+                        UartService.this.writeRXCharacteristic(value);
+                        value[0] = 0;
+                        UartService.this.writeRXCharacteristic(value);
+                    }
+                });
+                thread.start();
+            }else{
+                Log.w(TAG,"onDescriptorWrite: "+status);
+            }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
         }
     };
 
@@ -254,7 +280,7 @@ public class UartService extends Service {
             return;
         }
         mBluetoothGatt.disconnect();
-       // mBluetoothGatt.close();
+        //mBluetoothGatt.close();
     }
 
     /**
@@ -297,8 +323,7 @@ public class UartService extends Service {
      *
      * @return 
      */
-    public void enableTXNotification()
-    { 
+    public void enableTXNotification() {
     	/*
     	if (mBluetoothGatt == null) {
     		showMessage("mBluetoothGatt null" + mBluetoothGatt);
@@ -306,24 +331,24 @@ public class UartService extends Service {
     		return;
     	}
     		*/
-    	BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
-    	if (RxService == null) {
+        BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
+        if (RxService == null) {
             showMessage("Rx service not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
-    	BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
+        BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
         if (TxChar == null) {
             showMessage("Tx charateristic not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
             return;
         }
-        mBluetoothGatt.setCharacteristicNotification(TxChar,true);
-        
+        mBluetoothGatt.setCharacteristicNotification(TxChar, true);
+
         BluetoothGattDescriptor descriptor = TxChar.getDescriptor(CCCD);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         mBluetoothGatt.writeDescriptor(descriptor);
-    	
+
     }
     
     public void writeRXCharacteristic(byte[] value)
@@ -331,7 +356,7 @@ public class UartService extends Service {
     
     	
     	BluetoothGattService RxService = mBluetoothGatt.getService(RX_SERVICE_UUID);
-    	showMessage("mBluetoothGatt null"+ mBluetoothGatt);
+    	Log.d(TAG,"mBluetoothGatt:"+ mBluetoothGatt);
     	if (RxService == null) {
             showMessage("Rx service not found!");
             broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
