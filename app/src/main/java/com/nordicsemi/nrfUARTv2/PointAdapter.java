@@ -76,6 +76,7 @@ public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnCli
             public void onClick(View v) {
                 point.remove(pModel);
                 notifyDataSetChanged();
+                MainActivity.sendEvent();
             }
         });
 

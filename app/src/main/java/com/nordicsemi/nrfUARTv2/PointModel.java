@@ -93,10 +93,21 @@ public class PointModel {
         }else{
             minuT = minu + "";
         }
+        String hourT = "";
         if(this.hour<12){
-            this.time = this.hour + ":" + minuT + "AM";
+            if(this.hour==0){
+                hourT = "12";
+            }else{
+                hourT = "" + this.hour;
+            }
+            this.time = hourT + ":" + minuT + "AM";
         }else{
-            this.time = this.hour + ":" + minuT + "PM";
+            if(this.hour==12){
+                hourT = "12";
+            }else{
+                hourT = "" + (this.hour - 12);
+            }
+            this.time = hourT + ":" + minuT + "PM";
         }
     }
 

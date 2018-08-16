@@ -34,7 +34,6 @@ public class ChartActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.chart_controller);
-        MainActivity.sendEvent();
         chartActivity = this;
         MainActivity.activityRunningState=1;
 
@@ -66,6 +65,8 @@ public class ChartActivity extends Activity {
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 timeIsRunning = false;
+                                byte[] value = new byte[]{7};
+                                MainActivity.mService.writeRXCharacteristic(value);
                                 dialog.dismiss();
                             }
                         });
@@ -155,11 +156,11 @@ public class ChartActivity extends Activity {
         blueEntries.add(new Entry(24, startPointYB));
         whiteEntries.add(new Entry(24, startPointYW));
 
-        LineDataSet blueDataSet = new LineDataSet(blueEntries, "Blue");
+        LineDataSet blueDataSet = new LineDataSet(blueEntries, "Channel1");
         blueDataSet.setColor(ContextCompat.getColor(this, R.color.blue));
         blueDataSet.setValueTextColor(ContextCompat.getColor(this, R.color.black));
 
-        LineDataSet whiteDataSet = new LineDataSet(whiteEntries, "White");
+        LineDataSet whiteDataSet = new LineDataSet(whiteEntries, "Channel2");
         whiteDataSet.setColor(ContextCompat.getColor(this, R.color.white));
         whiteDataSet.setValueTextColor(ContextCompat.getColor(this, R.color.black));
 

@@ -96,13 +96,13 @@
             android:textSize="16sp" />
 
         <Button
-            android:id="@+id/sendButton"
+            android:id="@+id/brightnessButton"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.1"
             android:enabled="false"
-            android:text="@string/send"
+            android:text="@string/Brightness"
             android:textColor="@color/btn_color_disconnected"
             android:textSize="16sp"
             android:textStyle="bold" />

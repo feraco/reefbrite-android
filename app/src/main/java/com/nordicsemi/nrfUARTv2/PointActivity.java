@@ -30,7 +30,6 @@ public class PointActivity extends Activity {
         btnBack = (Button) findViewById(R.id.go_back_btn_2);
         btnSave = (Button) findViewById(R.id.btn_save);
         picker=(TimePicker)findViewById(R.id.timePicker);
-        picker.setIs24HourView(true);
         blue = (SeekBar) findViewById(R.id.blue_bar);
         white = (SeekBar) findViewById(R.id.white_bar);
 
@@ -40,13 +39,26 @@ public class PointActivity extends Activity {
             picker.setCurrentMinute(pModel.getMinu());
             blue.setProgress(pModel.getBlueV());
             white.setProgress(pModel.getWhiteV());
+        }else{
+            blue.setProgress(MainActivity.currBlueValue);
+            white.setProgress(MainActivity.currWhiteValue);
         }
+
+        byte[] value = new byte[2];
+        value[0] = 3;
+        value[1] = (byte)blue.getProgress();
+        MainActivity.mService.writeRXCharacteristic(value);
+        value[0] = 2;
+        value[1] = (byte)white.getProgress();
+        MainActivity.mService.writeRXCharacteristic(value);
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 MainActivity.indexEdit = -1;
                 MainActivity.activityRunningState=0;
+                byte[] value = new byte[]{7};
+                MainActivity.mService.writeRXCharacteristic(value);
                 finish();
             }
         });
@@ -118,6 +130,8 @@ public class PointActivity extends Activity {
                         alertDialog.show();
                     }
                 }
+
+                MainActivity.sendEvent();
             }
         });
 

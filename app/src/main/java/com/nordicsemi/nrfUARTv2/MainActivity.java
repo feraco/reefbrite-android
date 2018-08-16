@@ -45,6 +45,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -73,9 +74,11 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
     private static ArrayList<PointModel> listAdapter = new ArrayList<PointModel>();
-    private Button btnConnectDisconnect, btnSend, btnAdd, btnChart;
+    private Button btnConnectDisconnect, btnBrightness, btnAdd, btnChart;
     public static PointAdapter pApter;
-    public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity
+    public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity 3 is BrightnessActivity
+    public static int currBlueValue, currWhiteValue;
+    private String whichActivity = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,7 +101,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         messageListView.setAdapter(pApter);
         messageListView.setDivider(null);
         btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
-        btnSend = (Button) findViewById(R.id.sendButton);
+        btnBrightness = (Button) findViewById(R.id.brightnessButton);
         btnAdd = (Button) findViewById(R.id.addBut);
         btnChart = (Button) findViewById(R.id.timeChartBut);
         service_init();
@@ -131,18 +134,21 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             }
         });
         // Handle Send button
-        btnSend.setOnClickListener(new View.OnClickListener() {
+        btnBrightness.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendEvent();
+                byte[] value = new byte[]{8};
+                MainActivity.mService.writeRXCharacteristic(value);
+                whichActivity = BrightnessActivity.class.getName();
             }
         });
 
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, PointActivity.class);
-                startActivity(intent);
+                byte[] value = new byte[]{8};
+                MainActivity.mService.writeRXCharacteristic(value);
+                whichActivity= PointActivity.class.getName();
             }
         });
 
@@ -156,6 +162,16 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
         // Set initial UI state
 
+    }
+
+    private void goToBrightnessActivity(){
+        Intent intent = new Intent(MainActivity.this, BrightnessActivity.class);
+        startActivity(intent);
+    }
+
+    private void goToPointActivity(){
+        Intent intent = new Intent(MainActivity.this, PointActivity.class);
+        startActivity(intent);
     }
 
     //UART service connected/disconnected
@@ -197,10 +213,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     public void run() {
                         Log.d(TAG, "UART_CONNECT_MSG");
                         btnConnectDisconnect.setText("Disconnect");
-                        btnSend.setEnabled(true);
+                        btnBrightness.setEnabled(true);
                         btnAdd.setEnabled(true);
                         btnChart.setEnabled(true);
-                        btnSend.setTextColor(Color.parseColor("#007AFF"));
+                        btnBrightness.setTextColor(Color.parseColor("#007AFF"));
                         btnAdd.setTextColor(Color.parseColor("#007AFF"));
                         btnChart.setTextColor(Color.parseColor("#007AFF"));
                         ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - ready");
@@ -217,10 +233,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     public void run() {
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
-                        btnSend.setEnabled(false);
+                        btnBrightness.setEnabled(false);
                         btnAdd.setEnabled(false);
                         btnChart.setEnabled(false);
-                        btnSend.setTextColor(Color.parseColor("#B8B8B8"));
+                        btnBrightness.setTextColor(Color.parseColor("#B8B8B8"));
                         btnAdd.setTextColor(Color.parseColor("#B8B8B8"));
                         btnChart.setTextColor(Color.parseColor("#B8B8B8"));
                         ((TextView) findViewById(R.id.deviceName)).setText("");
@@ -233,6 +249,9 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         }else if(activityRunningState==2){
                             MainActivity.activityRunningState=0;
                             PointActivity.pointActivity.finish();
+                        }else if(activityRunningState==3){
+                            MainActivity.activityRunningState=0;
+                            BrightnessActivity.brightnessActivity.finish();
                         }
                         //setUiState();
 
@@ -333,8 +352,16 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                                         new PointModel(16,0,255,255),
                                         new PointModel(20,0,63,0),
                                         new PointModel(21,0,0,0));
+                                sendEvent();
                             }
 
+                        }else if(value[0]==8){
+                            currBlueValue = value[1]& 0xFF;
+                            currWhiteValue = value[2]& 0xFF;
+                            if(whichActivity.equals(BrightnessActivity.class.getName()))
+                                goToBrightnessActivity();
+                            if(whichActivity.equals(PointActivity.class.getName()))
+                                goToPointActivity();
                         }
                     }
                 });
