@@ -161,7 +161,7 @@ public class ChartActivity extends Activity {
         blueDataSet.setValueTextColor(ContextCompat.getColor(this, R.color.black));
 
         LineDataSet whiteDataSet = new LineDataSet(whiteEntries, "Channel2");
-        whiteDataSet.setColor(ContextCompat.getColor(this, R.color.white));
+        whiteDataSet.setColor(ContextCompat.getColor(this, R.color.green));
         whiteDataSet.setValueTextColor(ContextCompat.getColor(this, R.color.black));
 
         //****

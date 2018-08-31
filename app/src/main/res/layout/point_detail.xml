@@ -45,7 +45,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:singleLine="false"
-                android:text="Blue: "
+                android:text="Channel1:"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="12sp"
@@ -56,7 +56,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:singleLine="false"
-                android:text="White: "
+                android:text="Channel2:"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="12sp"
@@ -110,12 +110,13 @@
                 style="@style/Widget.AppCompat.Button.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingRight="10dp"
                 android:text="Edit"
                 android:textAlignment="center"
                 android:textColor="@color/btn_color_connected"
+                android:background="@color/white"
                 android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                />
 
             <Button
                 android:id="@+id/delete"
@@ -125,8 +126,10 @@
                 android:text="Delete"
                 android:textAlignment="center"
                 android:textColor="@color/btn_color_connected"
+                android:background="@color/white"
                 android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:layout_marginLeft="10dp"/>
         </LinearLayout>
 
 

@@ -72,7 +72,7 @@
     <string name="back">&lt;</string>
     <string name="timeChart">Show Time Chart</string>
     <string name="add">+</string>
-    <string name="Brightness">Brightness</string>
+    <string name="Brightness">Overwrite</string>
     <string name="simu">Simulation</string>
     <string name="save">Save</string>
 
