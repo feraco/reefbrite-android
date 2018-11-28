@@ -32,6 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="0.31"
+        android:gravity="center"
         android:orientation="vertical">
 
 
@@ -41,8 +42,7 @@
             android:layout_weight="4.11"
             android:background="@color/table_color"
             android:gravity="center"
-            android:orientation="vertical"
-            >
+            android:orientation="vertical">
 
             <LinearLayout
                 android:id="@+id/blue_layout"
@@ -67,9 +67,19 @@
 
                 <SeekBar
                     android:id="@+id/blue_bar"
-                    android:layout_width="200dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="8"
                     android:max="255" />
+
+                <TextView
+                    android:id="@+id/percentage1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="100%"
+                    android:textAlignment="viewStart"
+                    android:textSize="18sp" />
 
 
             </LinearLayout>
@@ -78,7 +88,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/blue_layout"
-                android:gravity="center"
+                android:gravity="center_vertical|center_horizontal|center"
                 android:orientation="horizontal">
 
                 <TextView
@@ -93,9 +103,19 @@
 
                 <SeekBar
                     android:id="@+id/white_bar"
-                    android:layout_width="200dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="8"
                     android:max="255" />
+
+                <TextView
+                    android:id="@+id/percentage2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"
+                    android:text="100%"
+                    android:textAlignment="viewStart"
+                    android:textSize="18sp" />
             </LinearLayout>
 
         </LinearLayout>
