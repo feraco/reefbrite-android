@@ -3,6 +3,7 @@ package com.nordicsemi.reefBrite;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,6 +60,10 @@ public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnCli
         viewHolder.whitePercent = (TextView) convertView.findViewById(R.id.white_value);
         viewHolder.editBtn = (Button) convertView.findViewById(R.id.edit);
         viewHolder.deleteBtn = (Button) convertView.findViewById(R.id.delete);
+        if(position==0){//the first point cannot be delete
+            viewHolder.deleteBtn.setEnabled(false);
+            viewHolder.deleteBtn.setTextColor(Color.GRAY);
+        }
 
         viewHolder.editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
