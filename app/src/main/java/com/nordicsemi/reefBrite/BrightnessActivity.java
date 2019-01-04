@@ -2,6 +2,7 @@ package com.nordicsemi.reefBrite;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -12,6 +13,7 @@ public class BrightnessActivity extends Activity {
     private SeekBar blue, white;
     public static Activity brightnessActivity;
     private TextView percentage1, percentage2;
+    public static final String TAG = "BrightnessActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +65,7 @@ public class BrightnessActivity extends Activity {
                 value[0] = 3;
                 value[1] = (byte)i;
                 MainActivity.mService.writeRXCharacteristic(value);
+                Log.d(TAG, "blue brightness = "+i);
             }
 
             @Override
@@ -85,6 +88,7 @@ public class BrightnessActivity extends Activity {
                 value[0] = 2;
                 value[1] = (byte)i;
                 MainActivity.mService.writeRXCharacteristic(value);
+                Log.d(TAG, "white brightness = "+i);
             }
 
             @Override
