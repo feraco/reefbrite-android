@@ -324,13 +324,17 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             if(value[1]!=0){
                                 int count = 0;
                                 PointModel pModel = new PointModel();
+                                boolean isFirst = true;
                                 for(int i=3; i<value.length; i++){
                                     if(count==3){
                                         pModel.setWhiteV(value[i]& 0xFF);
                                         pApter.add(pModel);
                                         count = 0;
+                                        if(isFirst){//set the first time when received from controller
+                                            isFirst = false;
+                                            PointActivity.firstTime = pModel.getTimeInMinu();
+                                        }
                                         pModel = new PointModel();
-
                                     }else{
                                         if(count==0){
                                             pModel.setHour(value[i]);
@@ -344,13 +348,9 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                                         }
                                     }
                                 }
-                            }else{
-                                pApter.addAll(new PointModel(9,0,0,0),
-                                        new PointModel(10,0,84,0),
-                                        new PointModel(12,0,255,255),
-                                        new PointModel(16,0,255,255),
-                                        new PointModel(20,0,63,0),
-                                        new PointModel(21,0,0,0));
+                            }else{//preset points
+                                pApter.addAll(new PointModel(8,0,50,50));
+                                PointActivity.firstTime = 8*60;//set the first time when there is no point
                                 sendEvent();
                             }
 

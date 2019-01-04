@@ -19,6 +19,7 @@ public class PointActivity extends Activity {
     private SeekBar blue, white;
     public static Activity pointActivity;
     private TextView percentage1, percentage2;
+    public static int firstTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,13 +82,16 @@ public class PointActivity extends Activity {
                     }
                 }
 
-                if(MainActivity.indexEdit != -1){
+                if(MainActivity.indexEdit != -1){//edit
                     PointModel pModel = MainActivity.pApter.getItem(MainActivity.indexEdit);
                     if(!isDuplicate){
                         pModel.setHour(picker.getCurrentHour());
                         pModel.setMinu(picker.getCurrentMinute());
                         pModel.setBlueV(blue.getProgress());
                         pModel.setWhiteV(white.getProgress());
+                        if(MainActivity.indexEdit==0){//save the time for sorting
+                            firstTime = pModel.getTimeInMinu();
+                        }
                         sortAdpter(MainActivity.pApter);
                         MainActivity.pApter.notifyDataSetChanged();
                         MainActivity.indexEdit = -1;
@@ -115,7 +119,7 @@ public class PointActivity extends Activity {
                         }
                     }
 
-                }else{
+                }else{//add
                     if(!isDuplicate){
                         MainActivity.pApter.add(new PointModel(picker.getCurrentHour(), picker.getCurrentMinute(), blue.getProgress(), white.getProgress()));
                         MainActivity.indexEdit = -1;
@@ -191,7 +195,16 @@ public class PointActivity extends Activity {
         pApter.sort(new Comparator<PointModel>() {
             @Override
             public int compare(PointModel p1, PointModel p2) {
-                return p1.getTimeInMinu()-p2.getTimeInMinu();   //or whatever your sorting algorithm
+                int p1Time = p1.getTimeInMinu();
+                int p2Time = p2.getTimeInMinu();
+                if(p1Time<firstTime){
+                    p1Time+=24*60;
+                }
+                if(p2Time<firstTime){
+                    p2Time+=24*60;
+                }
+
+                return p1Time-p2Time;   //or whatever your sorting algorithm
             }
         });
     }
