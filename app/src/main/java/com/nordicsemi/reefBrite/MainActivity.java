@@ -78,6 +78,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity 3 is BrightnessActivity
     public static int currBlueValue, currWhiteValue;
     private String whichActivity = "";
+    private boolean isFirst = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -121,6 +122,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
 
                         Intent newIntent = new Intent(MainActivity.this, DeviceListActivity.class);
                         startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+                        isFirst = true;
                     } else {
                         //Disconnect button pressed
                         if (mDevice != null) {
@@ -324,7 +326,6 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             if(value[1]!=0){
                                 int count = 0;
                                 PointModel pModel = new PointModel();
-                                boolean isFirst = true;
                                 for(int i=3; i<value.length; i++){
                                     if(count==3){
                                         pModel.setWhiteV(value[i]& 0xFF);
