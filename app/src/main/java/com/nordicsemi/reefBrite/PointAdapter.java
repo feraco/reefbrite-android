@@ -1,6 +1,7 @@
 package com.nordicsemi.reefBrite;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -40,6 +41,7 @@ public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnCli
 
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
@@ -64,6 +66,9 @@ public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnCli
         if(position==0){//the first point cannot be delete
             viewHolder.deleteBtn.setEnabled(false);
             viewHolder.deleteBtn.setTextColor(Color.GRAY);
+        }else{
+            viewHolder.deleteBtn.setEnabled(true);
+            viewHolder.deleteBtn.setTextColor(mContext.getResources().getColor(R.color.btn_color_connected));
         }
 
         viewHolder.editBtn.setOnClickListener(new View.OnClickListener() {
