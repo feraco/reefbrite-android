@@ -11,9 +11,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnClickListener{
+public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnClickListener, Serializable{
 
     private ArrayList<PointModel> point;
     Context mContext;
@@ -88,6 +89,10 @@ public class PointAdapter extends ArrayAdapter<PointModel> implements View.OnCli
         viewHolder.bluePercent.setText(pModel.getBluePercent());
         viewHolder.whitePercent.setText(pModel.getWhitePercent());
         return convertView;
+    }
+
+    public ArrayList<PointModel> clone(){
+        return (ArrayList<PointModel>)point.clone();
     }
 }
 

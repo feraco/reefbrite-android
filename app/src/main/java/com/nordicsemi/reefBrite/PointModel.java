@@ -1,6 +1,8 @@
 package com.nordicsemi.reefBrite;
 
-public class PointModel {
+import android.support.annotation.NonNull;
+
+public class PointModel implements Comparable{
     private int hour;
     private int minu;
     private int blueV;
@@ -118,5 +120,10 @@ public class PointModel {
 
     public int getTimeInMinu(){
         return (this.hour*60)+this.minu;
+    }
+
+    @Override
+    public int compareTo(@NonNull Object o) {
+        return this.getTimeInMinu()-((PointModel)o).getTimeInMinu();
     }
 }

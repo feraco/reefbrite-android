@@ -2,6 +2,7 @@ package com.nordicsemi.reefBrite;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -19,7 +20,14 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class ChartActivity extends Activity {
 
@@ -116,13 +124,22 @@ public class ChartActivity extends Activity {
         ArrayList<Entry> whiteEntries = new ArrayList<>();
 
         float startPointYB, startPointYW;
-        PointModel pStart = MainActivity.pApter.getItem(0);
-        PointModel pEnd = MainActivity.pApter.getItem(MainActivity.pApter.getCount()-1);
+        ArrayList<PointModel> list = MainActivity.pApter.clone();
+        sortList(list);
+
+        PointModel firstPoint = MainActivity.pApter.getItem(0);
+        PointModel lastPoint = MainActivity.pApter.getItem(MainActivity.pApter.getCount()-1);
+
+        PointModel pStart = list.get(0);
+        PointModel pEnd = list.get(list.size()-1);
 
         if(Float.parseFloat(pStart.getHour()+"."+pStart.getMinu()) !=0){
-            if(MainActivity.pApter.getCount()==1){
+            if(list.size()==1){
                 startPointYB = (float)(pStart.getBlueV()/2.55);
                 startPointYW = (float)(pStart.getWhiteV()/2.55);
+            }else if(pStart.getTimeInMinu()==firstPoint.getTimeInMinu()){
+                startPointYB = (float)(pEnd.getBlueV()/2.55);
+                startPointYW = (float)(pEnd.getWhiteV()/2.55);
             }else{
                 float x1 = pStart.getHour()*60 + pStart.getMinu();
                 float x2 = pEnd.getHour()*60 + pEnd.getMinu();
@@ -143,9 +160,13 @@ public class ChartActivity extends Activity {
         }
 
 
-        for(int i=0; i<MainActivity.pApter.getCount(); i++){
-            PointModel pModel = MainActivity.pApter.getItem(i);
-            float x = Float.parseFloat(pModel.getHour()+"."+pModel.getMinu());
+        for(int i=0; i<list.size(); i++){
+            PointModel pModel = list.get(i);
+            if(pModel.getTimeInMinu()==firstPoint.getTimeInMinu()){
+                blueEntries.add(new Entry((float)(firstPoint.getTimeInMinu()/60.0), (float)(lastPoint.getBlueV()/2.55)));
+                whiteEntries.add(new Entry((float)(firstPoint.getTimeInMinu()/60.0), (float)(lastPoint.getWhiteV()/2.55)));
+            }
+            float x = (float)(pModel.getTimeInMinu()/60.0);
             float yb = (float)(pModel.getBlueV()/2.55);
             float yw = (float)(pModel.getWhiteV()/2.55);
             blueEntries.add(new Entry(x, yb));
@@ -204,4 +225,9 @@ public class ChartActivity extends Activity {
         //refresh
         chart.invalidate();
     }
+
+    public void sortList(ArrayList<PointModel> list){
+        Collections.sort(list);
+    }
+
 }
