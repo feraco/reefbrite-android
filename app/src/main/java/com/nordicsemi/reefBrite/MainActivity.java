@@ -147,9 +147,22 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                byte[] value = new byte[]{8};
-                MainActivity.mService.writeRXCharacteristic(value);
-                whichActivity= PointActivity.class.getName();
+                if(pApter.getCount()<28) {
+                    byte[] value = new byte[]{8};
+                    MainActivity.mService.writeRXCharacteristic(value);
+                    whichActivity = PointActivity.class.getName();
+                }else{
+                    android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(MainActivity.this).create();
+                    alertDialog.setTitle("NOTIFICATION!");
+                    alertDialog.setMessage("Reach maximum points.");
+                    alertDialog.setButton(android.support.v7.app.AlertDialog.BUTTON_NEUTRAL, "Close",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                    alertDialog.show();
+                }
             }
         });
 

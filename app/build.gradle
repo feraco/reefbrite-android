@@ -4,7 +4,6 @@ android {
 
     defaultConfig {
         applicationId "com.nordicsemi.reefBrite"
-        minSdkVersion 18
         targetSdkVersion 26
     }
 
