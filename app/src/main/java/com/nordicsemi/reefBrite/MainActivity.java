@@ -78,7 +78,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity 3 is BrightnessActivity
     public static int currBlueValue, currWhiteValue;
     private String whichActivity = "";
-    private boolean isFirst = true;
+    private volatile boolean isFirst = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -147,7 +147,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(pApter.getCount()<28) {
+                if(pApter.getCount()<10) {
                     byte[] value = new byte[]{8};
                     MainActivity.mService.writeRXCharacteristic(value);
                     whichActivity = PointActivity.class.getName();
