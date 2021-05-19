@@ -3,7 +3,7 @@ package com.nordicsemi.reefBrite;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -57,6 +57,11 @@ public class PointActivity extends Activity {
         MainActivity.mService.writeRXCharacteristic(value);
         value[0] = 2;
         value[1] = (byte)white.getProgress();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         MainActivity.mService.writeRXCharacteristic(value);
 
         btnBack.setOnClickListener(new View.OnClickListener() {

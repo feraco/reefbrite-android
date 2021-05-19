@@ -50,7 +50,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -152,10 +152,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     MainActivity.mService.writeRXCharacteristic(value);
                     whichActivity = PointActivity.class.getName();
                 }else{
-                    android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(MainActivity.this).create();
+                    androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
                     alertDialog.setTitle("NOTIFICATION!");
                     alertDialog.setMessage("Reach maximum points.");
-                    alertDialog.setButton(android.support.v7.app.AlertDialog.BUTTON_NEUTRAL, "Close",
+                    alertDialog.setButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL, "Close",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
@@ -323,10 +323,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                                     clockTime += "PM";
                                 }
 
-                                android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(MainActivity.this).create();
+                                androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
                                 alertDialog.setTitle("NOTIFICATION!");
                                 alertDialog.setMessage("Clock time "+ clockTime + " already changed to correct time " + currTime);
-                                alertDialog.setButton(android.support.v7.app.AlertDialog.BUTTON_NEUTRAL, "Close",
+                                alertDialog.setButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL, "Close",
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int which) {
                                                 dialog.dismiss();

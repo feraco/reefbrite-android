@@ -1,6 +1,6 @@
 package com.nordicsemi.reefBrite;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class PointModel implements Comparable{
     private int hour;
