@@ -298,7 +298,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             Log.d(TAG, "Current Time: " + currHour + ":" + currMinu);
                             Log.d(TAG, "Clock Time: " + clockHour + ":" + clockMinu);
 
-                            if (timeDiff>10 || timeDiff<-10){
+                            //if (timeDiff>10 || timeDiff<-10){
                                 String currTime = currHour+":";
                                 String clockTime = clockHour+":";
                                 if(currMinu<10){
@@ -333,7 +333,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                                             }
                                         });
                                 alertDialog.show();
-                            }
+                           // }
 
                         }else if(value[0]==1){
                             if(value[1]!=0){
@@ -388,37 +388,53 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     };
 
     public static void sendEvent(){
-        int n = 1;
-        int packageNum = 0;
-        int arrayIndex = 0;
-        int totalPackageNum = listAdapter.size()/4;
-        int lastPackageSize = (listAdapter.size()%4)*4 + 3;
-        byte[] value = new byte[19];
-        value[arrayIndex++] = 1;
-        value[arrayIndex++] = (byte) listAdapter.size();
-        value[arrayIndex++] = (byte) packageNum;
-        for(PointModel pModel: listAdapter){
-            if(n==5){
-                mService.writeRXCharacteristic(value);
-                if(packageNum==totalPackageNum){
-                    value = new byte[lastPackageSize];
-                }else{
-                    value = new byte[19];
-                }
-                n = 1;
-                packageNum ++;
-                arrayIndex = 0;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int n = 1;
+                int packageNum = 0;
+                int arrayIndex = 0;
+                int totalPackageNum = listAdapter.size()/4;
+                int lastPackageSize = (listAdapter.size()%4)*4 + 3;
+                byte[] value = new byte[19];
                 value[arrayIndex++] = 1;
                 value[arrayIndex++] = (byte) listAdapter.size();
                 value[arrayIndex++] = (byte) packageNum;
+                for(PointModel pModel: listAdapter){
+                    if(n==5){
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        mService.writeRXCharacteristic(value);
+                        if(packageNum==totalPackageNum){
+                            value = new byte[lastPackageSize];
+                        }else{
+                            value = new byte[19];
+                        }
+                        n = 1;
+                        packageNum ++;
+                        arrayIndex = 0;
+                        value[arrayIndex++] = 1;
+                        value[arrayIndex++] = (byte) listAdapter.size();
+                        value[arrayIndex++] = (byte) packageNum;
+                    }
+                    value[arrayIndex++] = (byte) pModel.getHour();
+                    value[arrayIndex++] = (byte) pModel.getMinu();
+                    value[arrayIndex++] = (byte) pModel.getBlueV();
+                    value[arrayIndex++] = (byte) pModel.getWhiteV();
+                    n++;
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                mService.writeRXCharacteristic(value);
             }
-            value[arrayIndex++] = (byte) pModel.getHour();
-            value[arrayIndex++] = (byte) pModel.getMinu();
-            value[arrayIndex++] = (byte) pModel.getBlueV();
-            value[arrayIndex++] = (byte) pModel.getWhiteV();
-            n++;
-        }
-        mService.writeRXCharacteristic(value);
+        }).start();
+
     }
 
     private void service_init() {
