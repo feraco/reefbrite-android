@@ -403,7 +403,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 for(PointModel pModel: listAdapter){
                     if(n==5){
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(500);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -427,7 +427,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     n++;
                 }
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

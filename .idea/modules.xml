@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ReefBrite Controller.iml" filepath="$PROJECT_DIR$/ReefBrite Controller.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ReefBrite_Controller.iml" filepath="$PROJECT_DIR$/.idea/modules/ReefBrite_Controller.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ReefBrite_Controller.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ReefBrite_Controller.app.iml" />
     </modules>
   </component>
 </project>
