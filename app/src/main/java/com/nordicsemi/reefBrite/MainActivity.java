@@ -214,7 +214,9 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 // Handle the entered text
                 if(enteredText.length()>7){
                     Toast.makeText(context, "The name exceed 7 characters. Please retry.", Toast.LENGTH_SHORT).show();
-                }else {
+                }else if(enteredText.length()==0) {
+                    Toast.makeText(context, "The name cannot be empty. Please retry.", Toast.LENGTH_SHORT).show();
+                }else{
                     Toast.makeText(context, "Change to the new name: " + enteredText + ". The controller is restarting.", Toast.LENGTH_SHORT).show();
                     if (mDevice != null) {
                         //update name map
