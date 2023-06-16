@@ -80,27 +80,47 @@
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.2"
+            android:layout_weight="1"
             android:text="@string/connect"
             android:textColor="@color/btn_color_connected"
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/deviceName"
+        <LinearLayout
+            android:id="@+id/nameLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/no_device"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textSize="16sp" />
+            android:background="@android:color/white"
+            android:orientation="horizontal"
+            android:layout_margin="0dp">
+
+            <TextView
+                android:id="@+id/nameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.1"
+                android:text="Device:"
+                android:textAllCaps="false"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/deviceName"
+                style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/no_device"
+                android:textAllCaps="false"
+                android:textColor="@color/btn_color_connected"
+                android:textSize="16sp" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/brightnessButton"
             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.1"
+            android:layout_weight="1"
             android:enabled="false"
             android:text="@string/Brightness"
             android:textColor="@color/btn_color_disconnected"

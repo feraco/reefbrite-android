@@ -293,8 +293,11 @@ public class DeviceListActivity extends Activity {
             if (rssival != 0) {
                 tvrssi.setText("Rssi = " + String.valueOf(rssival));
             }
-
-            tvname.setText(device.getName());
+            if(MainActivity.nameMap.containsKey(device.getAddress()+device.getName())){
+                tvname.setText(MainActivity.nameMap.get(device.getAddress()+device.getName()));
+            }else {
+                tvname.setText(device.getName());
+            }
             tvadd.setText(device.getAddress());
             if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
                 Log.i(TAG, "device::"+device.getName());

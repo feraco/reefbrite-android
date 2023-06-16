@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 
 
 import android.Manifest;
@@ -43,6 +44,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
@@ -53,11 +55,16 @@ import android.os.Message;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class MainActivity extends Activity implements RadioGroup.OnCheckedChangeListener {
     private static final int REQUEST_SELECT_DEVICE = 1;
@@ -73,17 +80,20 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
     private static ArrayList<PointModel> listAdapter = new ArrayList<PointModel>();
-    private Button btnConnectDisconnect, btnBrightness, btnAdd, btnChart;
+    private Button btnConnectDisconnect, btnBrightness, btnAdd, btnChart, btnName;
     public static PointAdapter pApter;
     public static int activityRunningState = 0; // 0 is MainActivity 1 is ChartActivity 2 is PointActivity 3 is BrightnessActivity
     public static int currBlueValue, currWhiteValue;
     private String whichActivity = "";
     private volatile boolean isFirst = true;
+    public static HashMap<String, String> nameMap = new HashMap<String, String>();
+    private Context context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        context = this;
 
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
@@ -101,11 +111,18 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         messageListView.setAdapter(pApter);
         messageListView.setDivider(null);
         btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
+        btnName = (Button) findViewById(R.id.deviceName);
         btnBrightness = (Button) findViewById(R.id.brightnessButton);
         btnAdd = (Button) findViewById(R.id.addBut);
         btnChart = (Button) findViewById(R.id.timeChartBut);
         service_init();
 
+        btnName.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                showAlertDialogWithTextField();
+            }
+        });
 
         // Handle Disconnect & Connect button
         btnConnectDisconnect.setOnClickListener(new View.OnClickListener() {
@@ -174,8 +191,67 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
             }
         });
 
-        // Set initial UI state
+        //load name map
+        try {
+            nameMap = new Gson().fromJson(getSharedPreferences("test", MODE_PRIVATE).getString("hashString", "oopsDintWork"), new TypeToken<HashMap<String, String>>() {
+            }.getType());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
+    private void showAlertDialogWithTextField() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Enter a new name (max 7 characters):");
+
+        final EditText input = new EditText(context);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String enteredText = input.getText().toString();
+                // Handle the entered text
+                if(enteredText.length()>7){
+                    Toast.makeText(context, "The name exceed 7 characters. Please retry.", Toast.LENGTH_SHORT).show();
+                }else {
+                    Toast.makeText(context, "Change to the new name: " + enteredText + ". The controller is restarting.", Toast.LENGTH_SHORT).show();
+                    if (mDevice != null) {
+                        //update name map
+                        nameMap.put(mDevice.getAddress()+mDevice.getName(), enteredText);
+                        //save name map
+                        getSharedPreferences("test", MODE_PRIVATE).edit().putString("hashString", new Gson().toJson(nameMap)).apply();
+                        //save name to the device
+                        byte[] byteArray = new byte[enteredText.length() + 1];
+                        byteArray[0] = 9;
+                        byte[] stringBytes = enteredText.getBytes();
+                        System.arraycopy(stringBytes, 0, byteArray, 1, stringBytes.length);
+                        mService.writeRXCharacteristic(byteArray);
+                        btnName.setText(enteredText);
+                        //send name
+                        byte[] textBytes = enteredText.getBytes();
+                        byte[] nameArray = new byte[1 + textBytes.length];
+                        nameArray[0] = 9;
+                        // Copy the contents of textBytes to nameArray, starting from the end of nameArray
+                        System.arraycopy(textBytes, 0, nameArray, 1, textBytes.length);
+                        mService.writeRXCharacteristic(nameArray);
+                    }
+                }
+                // Dismiss the keyboard
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     private void goToBrightnessActivity(){
@@ -233,7 +309,12 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         btnBrightness.setTextColor(Color.parseColor("#007AFF"));
                         btnAdd.setTextColor(Color.parseColor("#007AFF"));
                         btnChart.setTextColor(Color.parseColor("#007AFF"));
-                        ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - ready");
+                        if(nameMap.containsKey(mDevice.getAddress()+mDevice.getName())){
+                            ((Button) findViewById(R.id.deviceName)).setText(nameMap.get(mDevice.getAddress()+mDevice.getName()));
+                        }else{
+                            ((Button) findViewById(R.id.deviceName)).setText(mDevice.getName());
+                        }
+
                         messageListView.smoothScrollToPosition(listAdapter.size() - 1);
                         mState = UART_PROFILE_CONNECTED;
 
@@ -522,7 +603,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                     mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
 
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "mserviceValue" + mService);
-                    ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - connecting");
+                   // ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName() + " - connecting");
                     mService.connect(deviceAddress);
 
 
