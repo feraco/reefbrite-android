@@ -56,6 +56,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 public class DeviceListActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -297,6 +299,13 @@ public class DeviceListActivity extends Activity {
                 tvname.setText(MainActivity.nameMap.get(device.getAddress()+device.getName()));
             }else {
                 tvname.setText(device.getName());
+                for(String key: MainActivity.nameMap.keySet()){
+                    if(key.contains(device.getAddress())){
+                        MainActivity.nameMap.remove(key);
+                    }
+                }
+                //save name map
+                getSharedPreferences("test", MODE_PRIVATE).edit().putString("hashString", new Gson().toJson(MainActivity.nameMap)).apply();
             }
             tvadd.setText(device.getAddress());
             if (device.getBondState() == BluetoothDevice.BOND_BONDED) {

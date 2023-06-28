@@ -223,18 +223,12 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                         nameMap.put(mDevice.getAddress()+mDevice.getName(), enteredText);
                         //save name map
                         getSharedPreferences("test", MODE_PRIVATE).edit().putString("hashString", new Gson().toJson(nameMap)).apply();
-                        //save name to the device
-                        byte[] byteArray = new byte[enteredText.length() + 1];
-                        byteArray[0] = 9;
-                        byte[] stringBytes = enteredText.getBytes();
-                        System.arraycopy(stringBytes, 0, byteArray, 1, stringBytes.length);
-                        mService.writeRXCharacteristic(byteArray);
+                        //update name button
                         btnName.setText(enteredText);
                         //send name
                         byte[] textBytes = enteredText.getBytes();
                         byte[] nameArray = new byte[1 + textBytes.length];
                         nameArray[0] = 9;
-                        // Copy the contents of textBytes to nameArray, starting from the end of nameArray
                         System.arraycopy(textBytes, 0, nameArray, 1, textBytes.length);
                         mService.writeRXCharacteristic(nameArray);
                     }
