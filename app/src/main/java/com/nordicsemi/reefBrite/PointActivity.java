@@ -38,8 +38,8 @@ public class PointActivity extends Activity {
 
         if(MainActivity.indexEdit != -1){
             PointModel pModel = MainActivity.pApter.getItem(MainActivity.indexEdit);
-            picker.setCurrentHour(pModel.getHour());
-            picker.setCurrentMinute(pModel.getMinu());
+            picker.setHour(pModel.getHour());
+            picker.setMinute(pModel.getMinu());
             blue.setProgress(pModel.getBlueV());
             percentage1.setText((int)(pModel.getBlueV()/2.55)+"%");
             white.setProgress(pModel.getWhiteV());
@@ -81,7 +81,7 @@ public class PointActivity extends Activity {
                 boolean isDuplicate = false;
 
                 for(int i=0; i<MainActivity.pApter.getCount(); i++ ){
-                    if(MainActivity.pApter.getItem(i).getHour()==picker.getCurrentHour() && MainActivity.pApter.getItem(i).getMinu()==picker.getCurrentMinute()){
+                    if(MainActivity.pApter.getItem(i).getHour()==picker.getHour() && MainActivity.pApter.getItem(i).getMinu()==picker.getMinute()){
                         isDuplicate = true;
                         break;
                     }
@@ -90,8 +90,8 @@ public class PointActivity extends Activity {
                 if(MainActivity.indexEdit != -1){//edit
                     PointModel pModel = MainActivity.pApter.getItem(MainActivity.indexEdit);
                     if(!isDuplicate){
-                        pModel.setHour(picker.getCurrentHour());
-                        pModel.setMinu(picker.getCurrentMinute());
+                        pModel.setHour(picker.getHour());
+                        pModel.setMinu(picker.getMinute());
                         pModel.setBlueV(blue.getProgress());
                         pModel.setWhiteV(white.getProgress());
                         if(MainActivity.indexEdit==0){//save the time for sorting
@@ -103,7 +103,7 @@ public class PointActivity extends Activity {
                         MainActivity.activityRunningState=0;
                         finish();
                     }else{
-                        if(pModel.getHour()==picker.getCurrentHour() && pModel.getMinu()==picker.getCurrentMinute()) {
+                        if(pModel.getHour()==picker.getHour() && pModel.getMinu()==picker.getMinute()) {
                             pModel.setBlueV(blue.getProgress());
                             pModel.setWhiteV(white.getProgress());
                             MainActivity.pApter.notifyDataSetChanged();
@@ -126,7 +126,7 @@ public class PointActivity extends Activity {
 
                 }else{//add
                     if(!isDuplicate){
-                        MainActivity.pApter.add(new PointModel(picker.getCurrentHour(), picker.getCurrentMinute(), blue.getProgress(), white.getProgress()));
+                        MainActivity.pApter.add(new PointModel(picker.getHour(), picker.getMinute(), blue.getProgress(), white.getProgress()));
                         MainActivity.indexEdit = -1;
                         sortAdpter(MainActivity.pApter);
                         MainActivity.pApter.notifyDataSetChanged();

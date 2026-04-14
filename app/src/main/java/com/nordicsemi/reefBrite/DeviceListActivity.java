@@ -29,10 +29,16 @@ import java.util.Map;
 import java.util.UUID;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -41,6 +47,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -58,8 +66,10 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 
+@SuppressLint("MissingPermission")
 public class DeviceListActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter;
+    private BluetoothLeScanner mBluetoothLeScanner;
 
    // private BluetoothAdapter mBtAdapter;
     private TextView mEmptyList;
@@ -85,7 +95,7 @@ public class DeviceListActivity extends Activity {
         android.view.WindowManager.LayoutParams layoutParams = this.getWindow().getAttributes();
         layoutParams.gravity=Gravity.TOP;
         layoutParams.y = 200;
-        mHandler = new Handler();
+        mHandler = new Handler(Looper.getMainLooper());
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -136,42 +146,53 @@ public class DeviceListActivity extends Activity {
     
     private void scanLeDevice(final boolean enable) {
         final Button cancelButton = (Button) findViewById(R.id.btn_cancel);
+        if (mBluetoothLeScanner == null) {
+            mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        }
+        if (mBluetoothLeScanner == null) return;
+
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
 					mScanning = false;
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        
+                    if (mBluetoothLeScanner != null) {
+                        mBluetoothLeScanner.stopScan(mScanCallback);
+                    }
                     cancelButton.setText(R.string.scan);
 
                 }
             }, SCAN_PERIOD);
 
             mScanning = true;
-            //mBluetoothAdapter.startLeScan(mLeScanCallback);
-            UUID[] uartUUID = new UUID[1];
-            uartUUID[0]=UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
-            mBluetoothAdapter.startLeScan(uartUUID,mLeScanCallback);
+            ScanFilter filter = new ScanFilter.Builder()
+                    .setServiceUuid(new ParcelUuid(UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E")))
+                    .build();
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build();
+            List<ScanFilter> filters = new ArrayList<>();
+            filters.add(filter);
+            mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
             cancelButton.setText(R.string.cancel);
         } else {
             mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            if (mBluetoothLeScanner != null) {
+                mBluetoothLeScanner.stopScan(mScanCallback);
+            }
             cancelButton.setText(R.string.scan);
         }
 
     }
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
+    private ScanCallback mScanCallback = new ScanCallback() {
         @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+        public void onScanResult(int callbackType, final ScanResult result) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                              addDevice(device,rssi);
+                    addDevice(result.getDevice(), result.getRssi());
                 }
             });
         }
@@ -212,14 +233,18 @@ public class DeviceListActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        if (mBluetoothLeScanner != null) {
+            mBluetoothLeScanner.stopScan(mScanCallback);
+        }
     
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        if (mBluetoothLeScanner != null) {
+            mBluetoothLeScanner.stopScan(mScanCallback);
+        }
         
     }
 
@@ -228,7 +253,9 @@ public class DeviceListActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             BluetoothDevice device = deviceList.get(position);
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            if (mBluetoothLeScanner != null) {
+                mBluetoothLeScanner.stopScan(mScanCallback);
+            }
   
             Bundle b = new Bundle();
             b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());

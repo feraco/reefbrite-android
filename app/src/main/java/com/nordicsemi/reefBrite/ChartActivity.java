@@ -11,13 +11,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -188,10 +187,14 @@ public class ChartActivity extends Activity {
         for(int i=0; i<time.length; i++){
             time[i] = "" + i;
         }
-        IAxisValueFormatter formatter = new IAxisValueFormatter() {
+        ValueFormatter formatter = new ValueFormatter() {
             @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                return time[(int) value];
+            public String getFormattedValue(float value) {
+                int index = (int) value;
+                if (index >= 0 && index < time.length) {
+                    return time[index];
+                }
+                return "";
             }
         };
 
@@ -202,12 +205,12 @@ public class ChartActivity extends Activity {
         // Controlling right side of y axis
         YAxis yAxisRight = chart.getAxisRight();
         yAxisRight.setGranularity(1f);
-        yAxisRight.setStartAtZero(true);
-        yAxisRight.setAxisMaxValue(100);
+        yAxisRight.setAxisMinimum(0f);
+        yAxisRight.setAxisMaximum(100f);
         YAxis yAxisLeft = chart.getAxisLeft();
         yAxisLeft.setGranularity(1f);
-        yAxisLeft.setStartAtZero(true);
-        yAxisLeft.setAxisMaxValue(100);
+        yAxisLeft.setAxisMinimum(0f);
+        yAxisLeft.setAxisMaximum(100f);
 
         // Setting Data
         LineData data = new LineData();

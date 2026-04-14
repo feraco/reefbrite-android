@@ -1,8 +1,13 @@
 .gradle
 /local.properties
-/.idea/workspace.xml
-/.idea/dictionaries/*.xml
-/.idea/libraries
+/.idea/
+*.iml
 .DS_Store
 /build
+/app/build/
+/app/release/
+/release/
 /key*
+*.jks
+*.keystore
+*.zip

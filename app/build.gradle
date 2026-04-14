@@ -1,26 +1,59 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'com.android.application'
+}
+
 android {
-    compileSdkVersion 29
+    namespace 'com.nordicsemi.reefBrite'
+    compileSdk 35
+
+    signingConfigs {
+        release {
+            storeFile file('../reefbrite-release-key.jks')
+            storePassword System.getenv("REEFBRITE_STORE_PASSWORD") ?: ''
+            keyAlias 'reefbrite'
+            keyPassword System.getenv("REEFBRITE_KEY_PASSWORD") ?: ''
+        }
+    }
 
     defaultConfig {
         applicationId "com.nordicsemi.reefBrite"
-        targetSdkVersion 29
-        minSdkVersion 18
+        minSdk 23
+        targetSdk 35
+        versionCode 6
+        versionName "6.0"
     }
-
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
     }
 }
 
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
-    implementation 'com.google.code.gson:gson:2.8.7'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    constraints {
+        implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22') {
+            because 'kotlin-stdlib-jdk7 is now part of kotlin-stdlib'
+        }
+        implementation('org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22') {
+            because 'kotlin-stdlib-jdk8 is now part of kotlin-stdlib'
+        }
+    }
 }

@@ -22,6 +22,7 @@
  */
 package com.nordicsemi.reefBrite;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -35,6 +36,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
@@ -46,6 +48,7 @@ import java.util.UUID;
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
+@SuppressLint("MissingPermission")
 public class UartService extends Service {
     private final static String TAG = UartService.class.getSimpleName();
 
@@ -271,7 +274,7 @@ public class UartService extends Service {
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+        mBluetoothGatt = device.connectGatt(this, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;
         mConnectionState = STATE_CONNECTING;
@@ -356,8 +359,12 @@ public class UartService extends Service {
         mBluetoothGatt.setCharacteristicNotification(TxChar, true);
 
         BluetoothGattDescriptor descriptor = TxChar.getDescriptor(CCCD);
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        mBluetoothGatt.writeDescriptor(descriptor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mBluetoothGatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        } else {
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
 
     }
     
@@ -377,8 +384,14 @@ public class UartService extends Service {
                 broadcastUpdate(DEVICE_DOES_NOT_SUPPORT_UART);
                 return;
             }
-            RxChar.setValue(value);
-            boolean status = mBluetoothGatt.writeCharacteristic(RxChar);
+            boolean status;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                int result = mBluetoothGatt.writeCharacteristic(RxChar, value, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+                status = (result == BluetoothGatt.GATT_SUCCESS);
+            } else {
+                RxChar.setValue(value);
+                status = mBluetoothGatt.writeCharacteristic(RxChar);
+            }
 
             Log.d(TAG, "write TXchar - status=" + status);
         }else{
