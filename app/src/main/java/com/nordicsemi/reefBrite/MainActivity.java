@@ -149,6 +149,10 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnConnectDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!hasRequiredBluetoothPermissions()) {
+                    requestRequiredBluetoothPermissions();
+                    return;
+                }
                 if (!mBtAdapter.isEnabled()) {
                     Log.i(TAG, "onClick - BT not enabled yet");
                     Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -648,7 +652,7 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            boolean allGranted = true;
+            boolean allGranted = grantResults.length > 0;
             for (int result : grantResults) {
                 if (result != PackageManager.PERMISSION_GRANTED) {
                     allGranted = false;
@@ -659,6 +663,32 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                 Toast.makeText(this, "Bluetooth permissions are required for this app to function", Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    private String[] getRequiredBluetoothPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return new String[]{
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            };
+        }
+        return new String[]{
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        };
+    }
+
+    private boolean hasRequiredBluetoothPermissions() {
+        for (String p : getRequiredBluetoothPermissions()) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void requestRequiredBluetoothPermissions() {
+        requestPermissions(getRequiredBluetoothPermissions(), PERMISSION_REQUEST_CODE);
     }
 
     @Override

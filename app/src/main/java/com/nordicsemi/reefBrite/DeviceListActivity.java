@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -45,10 +46,13 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -80,8 +84,31 @@ public class DeviceListActivity extends Activity {
     private ServiceConnection onService = null;
     Map<String, Integer> devRssiValues;
     private static final long SCAN_PERIOD = 10000; //scanning for 10 seconds
+    private static final int PERMISSION_REQUEST_CODE = 101;
     private Handler mHandler;
     private boolean mScanning;
+
+    private String[] getRequiredBlePermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return new String[]{
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            };
+        }
+        return new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        };
+    }
+
+    private boolean hasBlePermissions() {
+        for (String p : getRequiredBlePermissions()) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
 
@@ -146,6 +173,19 @@ public class DeviceListActivity extends Activity {
     
     private void scanLeDevice(final boolean enable) {
         final Button cancelButton = (Button) findViewById(R.id.btn_cancel);
+
+        if (enable && !hasBlePermissions()) {
+            // Ask the user for the permissions we need. The scan will start after
+            // onRequestPermissionsResult if they grant them.
+            requestPermissions(getRequiredBlePermissions(), PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            Toast.makeText(this, "Please turn on Bluetooth and try again.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         if (mBluetoothLeScanner == null) {
             mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
         }
@@ -158,7 +198,9 @@ public class DeviceListActivity extends Activity {
                 public void run() {
 					mScanning = false;
                     if (mBluetoothLeScanner != null) {
-                        mBluetoothLeScanner.stopScan(mScanCallback);
+                        try {
+                            mBluetoothLeScanner.stopScan(mScanCallback);
+                        } catch (SecurityException ignored) {}
                     }
                     cancelButton.setText(R.string.scan);
 
@@ -166,24 +208,59 @@ public class DeviceListActivity extends Activity {
             }, SCAN_PERIOD);
 
             mScanning = true;
-            ScanFilter filter = new ScanFilter.Builder()
-                    .setServiceUuid(new ParcelUuid(UUID.fromString("6E400001-B5A3-F393-E0A9-E50E24DCCA9E")))
-                    .build();
+            // NOTE: We intentionally do NOT filter by the Nordic UART service UUID
+            // here because some ReefBrite firmware revisions advertise that UUID
+            // only in the scan response, which would cause the filter to drop every
+            // packet and the user would see an empty list. Scanning unfiltered and
+            // letting the user pick their light is more reliable.
             ScanSettings settings = new ScanSettings.Builder()
                     .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                     .build();
             List<ScanFilter> filters = new ArrayList<>();
-            filters.add(filter);
-            mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
+            try {
+                mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
+            } catch (SecurityException se) {
+                Log.e(TAG, "startScan SecurityException", se);
+                Toast.makeText(this, "Bluetooth permission denied.", Toast.LENGTH_LONG).show();
+                return;
+            } catch (IllegalStateException ise) {
+                Log.e(TAG, "startScan IllegalStateException", ise);
+                Toast.makeText(this, "Bluetooth is not ready. Turn it on and retry.", Toast.LENGTH_LONG).show();
+                return;
+            }
             cancelButton.setText(R.string.cancel);
         } else {
             mScanning = false;
             if (mBluetoothLeScanner != null) {
-                mBluetoothLeScanner.stopScan(mScanCallback);
+                try {
+                    mBluetoothLeScanner.stopScan(mScanCallback);
+                } catch (SecurityException ignored) {}
             }
             cancelButton.setText(R.string.scan);
         }
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = grantResults.length > 0;
+            for (int r : grantResults) {
+                if (r != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                scanLeDevice(true);
+            } else {
+                Toast.makeText(this,
+                        "Bluetooth and Location permissions are required to find your light.",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+        }
     }
 
     private ScanCallback mScanCallback = new ScanCallback() {
