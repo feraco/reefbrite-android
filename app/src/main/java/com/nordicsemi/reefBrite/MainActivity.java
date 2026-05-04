@@ -180,19 +180,29 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
         btnBrightness.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mService == null || mState != UART_PROFILE_CONNECTED) {
+                    Toast.makeText(MainActivity.this, "Not connected. Tap Connect first.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 byte[] value = new byte[]{8};
                 MainActivity.mService.writeRXCharacteristic(value);
                 whichActivity = BrightnessActivity.class.getName();
+                scheduleNavigationFallback();
             }
         });
 
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mService == null || mState != UART_PROFILE_CONNECTED) {
+                    Toast.makeText(MainActivity.this, "Not connected. Tap Connect first.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if(pApter.getCount()<10) {
                     byte[] value = new byte[]{8};
                     MainActivity.mService.writeRXCharacteristic(value);
                     whichActivity = PointActivity.class.getName();
+                    scheduleNavigationFallback();
                 }else{
                     androidx.appcompat.app.AlertDialog alertDialog = new androidx.appcompat.app.AlertDialog.Builder(MainActivity.this).create();
                     alertDialog.setTitle("NOTIFICATION!");
@@ -283,6 +293,32 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
     private void goToPointActivity(){
         Intent intent = new Intent(MainActivity.this, PointActivity.class);
         startActivity(intent);
+    }
+
+    // Fallback handler: if the controller never replies to the [8] suspend command,
+    // open the requested activity ~1.2 s later anyway so the user is not stuck on
+    // an unresponsive screen. Cleared as soon as the real reply arrives.
+    private final Handler mNavHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mNavFallback = new Runnable() {
+        @Override public void run() {
+            if (whichActivity == null || whichActivity.isEmpty()) return;
+            String target = whichActivity;
+            whichActivity = "";
+            if (target.equals(BrightnessActivity.class.getName())) {
+                goToBrightnessActivity();
+            } else if (target.equals(PointActivity.class.getName())) {
+                goToPointActivity();
+            }
+        }
+    };
+
+    private void scheduleNavigationFallback() {
+        mNavHandler.removeCallbacks(mNavFallback);
+        mNavHandler.postDelayed(mNavFallback, 1200);
+    }
+
+    private void cancelNavigationFallback() {
+        mNavHandler.removeCallbacks(mNavFallback);
     }
 
     //UART service connected/disconnected
@@ -471,12 +507,14 @@ public class MainActivity extends Activity implements RadioGroup.OnCheckedChange
                             }
 
                         }else if(value[0]==8){
+                            cancelNavigationFallback();
                             currBlueValue = value[1]& 0xFF;
                             currWhiteValue = value[2]& 0xFF;
                             if(whichActivity.equals(BrightnessActivity.class.getName()))
                                 goToBrightnessActivity();
                             if(whichActivity.equals(PointActivity.class.getName()))
                                 goToPointActivity();
+                            whichActivity = "";
                         }
                     }
                 });
