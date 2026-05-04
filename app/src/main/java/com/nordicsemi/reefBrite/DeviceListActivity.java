@@ -90,9 +90,13 @@ public class DeviceListActivity extends Activity {
 
     private String[] getRequiredBlePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12+: BLUETOOTH_SCAN/CONNECT plus FINE_LOCATION (we are NOT
+            // using the neverForLocation flag, so location permission is required
+            // to receive scan results that contain location-correlated data).
             return new String[]{
                     Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION
             };
         }
         return new String[]{
@@ -186,6 +190,28 @@ public class DeviceListActivity extends Activity {
             return;
         }
 
+        // BLE scanning silently returns no results on most Android devices
+        // (including Samsung) when location services are disabled, even when the
+        // permission has been granted. Tell the user explicitly.
+        android.location.LocationManager lm =
+                (android.location.LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean locationEnabled = false;
+        if (lm != null) {
+            try {
+                locationEnabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER)
+                        || lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
+            } catch (Exception ignored) { /* fall through */ }
+        }
+        if (enable && !locationEnabled) {
+            Toast.makeText(this,
+                    "Please turn on Location services so Android can scan for Bluetooth devices.",
+                    Toast.LENGTH_LONG).show();
+            try {
+                startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            } catch (Exception ignored) {}
+            return;
+        }
+
         if (mBluetoothLeScanner == null) {
             mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
         }
@@ -270,6 +296,32 @@ public class DeviceListActivity extends Activity {
                 @Override
                 public void run() {
                     addDevice(result.getDevice(), result.getRssi());
+                }
+            });
+        }
+
+        @Override
+        public void onBatchScanResults(java.util.List<ScanResult> results) {
+            for (ScanResult r : results) {
+                addDevice(r.getDevice(), r.getRssi());
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e(TAG, "BLE scan failed, errorCode=" + errorCode);
+            final String reason;
+            switch (errorCode) {
+                case SCAN_FAILED_ALREADY_STARTED: reason = "scan already running"; break;
+                case SCAN_FAILED_APPLICATION_REGISTRATION_FAILED: reason = "app registration failed"; break;
+                case SCAN_FAILED_FEATURE_UNSUPPORTED: reason = "BLE scan not supported"; break;
+                case SCAN_FAILED_INTERNAL_ERROR: reason = "Bluetooth internal error"; break;
+                default: reason = "error " + errorCode; break;
+            }
+            runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(DeviceListActivity.this,
+                            "Bluetooth scan failed: " + reason, Toast.LENGTH_LONG).show();
                 }
             });
         }

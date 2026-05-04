@@ -29,12 +29,16 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 
-    <!-- Location permissions needed for BLE scanning on Android 11 and below -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+    <!-- Location permissions. On Android <= 11 these are required for BLE scanning.
+         On Android 12+ we still request ACCESS_FINE_LOCATION because we do NOT
+         declare neverForLocation on BLUETOOTH_SCAN: some peripherals advertise
+         manufacturer/scan-response data the OS treats as location-correlated and
+         silently filters out. Asking for FINE_LOCATION ensures we see them all. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Bluetooth permissions for Android 12 (API 31) and above -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
